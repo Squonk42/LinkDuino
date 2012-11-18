@@ -1,0 +1,135 @@
+diff -Naur luci-0.11+svn9415.orig/modules/admin-full/luasrc/controller/admin/system.lua luci-0.11+svn9415/modules/admin-full/luasrc/controller/admin/system.lua
+--- luci-0.11+svn9415.orig/modules/admin-full/luasrc/controller/admin/system.lua	2012-11-12 19:11:27.000000000 +0100
++++ luci-0.11+svn9415/modules/admin-full/luasrc/controller/admin/system.lua	2012-11-12 19:24:43.000000000 +0100
+@@ -290,7 +290,7 @@
+ 			local keep = (luci.http.formvalue("keep") == "1") and "" or "-n"
+ 			luci.template.render("admin_system/applyreboot", {
+ 				title = luci.i18n.translate("Flashing..."),
+-				msg   = luci.i18n.translate("The system is flashing now.<br /> DO NOT POWER OFF THE DEVICE!<br /> Wait a few minutes until you try to reconnect. It might be necessary to renew the address of your computer to reach the device again, depending on your settings."),
++				msg   = luci.i18n.translate("The system is flashing now.<br /><b>DO NOT POWER OFF THE DEVICE!</b><br /> Wait a few minutes until you try to reconnect. It might be necessary to renew the address of your computer to reach the device again, depending on your settings."),
+ 				addr  = (#keep > 0) and "192.168.1.1" or nil
+ 			})
+ 			fork_exec("killall dropbear uhttpd; sleep 1; /sbin/sysupgrade %s %q" %{ keep, image_tmp })
+diff -Naur luci-0.11+svn9415.orig/modules/admin-full/luasrc/view/admin_system/applyreboot.htm luci-0.11+svn9415/modules/admin-full/luasrc/view/admin_system/applyreboot.htm
+--- luci-0.11+svn9415.orig/modules/admin-full/luasrc/view/admin_system/applyreboot.htm	2012-07-01 22:05:05.000000000 +0200
++++ luci-0.11+svn9415/modules/admin-full/luasrc/view/admin_system/applyreboot.htm	2012-11-12 19:18:36.000000000 +0100
+@@ -32,19 +32,21 @@
+ 		//]]></script>
+ 	</head>
+ 	<body>
+-		<div id="maincontainer">
+-			<div id="maincontent">
+-				<h2><a id="content" name="content"><%:System%> - <% if title then %><%=title%><% else %><%:Rebooting...%><% end %></a></h2>
+-				<fieldset class="cbi-section">
+-					<p>
+-						<% if msg then %><%=msg%><% else %><%:Changes applied.%><% end %>
+-					</p>
+-					<p>
+-						<img src="<%=resource%>/icons/loading.gif" alt="<%:Loading%>" style="vertical-align:middle" />
+-						<%:Waiting for changes to be applied...%>
+-					</p>
+-				</fieldset>
+-			</div>
++		<div id="maincontainer" class="container">
++			<h2><a id="content" name="content"><%:System%> - <% if title then %><%=title%><% else %><%:Rebooting...%><% end %></a></h2>
++			<fieldset class="cbi-section">
++				<p>
++					<% if msg then %><div class="container">
++            <div class="alert-message warning">
++              <%=msg%>
++            </div>
++          </div><% else %><%:Changes applied.%><% end %>
++				</p>
++				<p>
++					<img src="<%=resource%>/icons/loading.gif" alt="<%:Loading%>" style="vertical-align:middle" />
++					<%:Waiting for changes to be applied...%>
++				</p>
++			</fieldset>
+ 		</div>
+ 	</body>
+ </html>
+diff -Naur luci-0.11+svn9415.orig/modules/admin-full/luasrc/view/admin_system/reboot.htm luci-0.11+svn9415/modules/admin-full/luasrc/view/admin_system/reboot.htm
+--- luci-0.11+svn9415.orig/modules/admin-full/luasrc/view/admin_system/reboot.htm	2009-10-31 16:54:11.000000000 +0100
++++ luci-0.11+svn9415/modules/admin-full/luasrc/view/admin_system/reboot.htm	2012-11-12 19:19:51.000000000 +0100
+@@ -20,7 +20,11 @@
+ local c = require("luci.model.uci").cursor():changes()
+ if c and next(c) then
+ -%>
+-	<p class="warning"><%:Warning: There are unsaved changes that will be lost while rebooting!%></p> 
++<div class="container">
++  <div class="alert-message warning">
++	  <%:Warning: There are unsaved changes that will be lost while rebooting!%>
++  </div>
++</div>
+ <%-
+ end
+ if not reboot then 
+@@ -30,4 +34,4 @@
+ <p><%:Please wait: Device rebooting...%></p>
+ <script type="text/javascript">setTimeout("location='<%=controller%>/admin'", 60000)</script>
+ <%- end -%>
+-<%+footer%>
+\ Pas de fin de ligne à la fin du fichier
++<%+footer%>
+diff -Naur luci-0.11+svn9415.orig/modules/failsafe/luasrc/controller/failsafe/failsafe.lua luci-0.11+svn9415/modules/failsafe/luasrc/controller/failsafe/failsafe.lua
+--- luci-0.11+svn9415.orig/modules/failsafe/luasrc/controller/failsafe/failsafe.lua	2012-09-20 04:16:51.000000000 +0200
++++ luci-0.11+svn9415/modules/failsafe/luasrc/controller/failsafe/failsafe.lua	2012-11-12 19:25:02.000000000 +0100
+@@ -132,7 +132,7 @@
+ 			local keep = (luci.http.formvalue("keep") == "1") and "" or "-n"
+ 			luci.template.render("failsafe/applyreboot", {
+ 				title = luci.i18n.translate("Flashing..."),
+-				msg   = luci.i18n.translate("The system is flashing now.<br /> DO NOT POWER OFF THE DEVICE!<br /> Wait a few minutes until you try to reconnect. It might be necessary to renew the address of your computer to reach the device again, depending on your settings."),
++				msg   = luci.i18n.translate("The system is flashing now.<br /><b>DO NOT POWER OFF THE DEVICE!</b><br /> Wait a few minutes until you try to reconnect. It might be necessary to renew the address of your computer to reach the device again, depending on your settings."),
+ 				addr  = (#keep > 0) and "192.168.1.1" or nil
+ 			})
+ 			fork_exec("killall dropbear uhttpd; sleep 1; /sbin/sysupgrade %s %q" %{ keep, image_tmp })
+diff -Naur luci-0.11+svn9415.orig/modules/failsafe/luasrc/view/failsafe/applyreboot.htm luci-0.11+svn9415/modules/failsafe/luasrc/view/failsafe/applyreboot.htm
+--- luci-0.11+svn9415.orig/modules/failsafe/luasrc/view/failsafe/applyreboot.htm	2012-09-20 04:16:51.000000000 +0200
++++ luci-0.11+svn9415/modules/failsafe/luasrc/view/failsafe/applyreboot.htm	2012-11-12 19:21:54.000000000 +0100
+@@ -32,19 +32,21 @@
+ 		//]]></script>
+ 	</head>
+ 	<body>
+-		<div id="maincontainer">
+-			<div id="maincontent">
+-				<h2><a id="content" name="content"><%:System%> - <% if title then %><%=title%><% else %><%:Rebooting...%><% end %></a></h2>
+-				<fieldset class="cbi-section">
+-					<p>
+-						<% if msg then %><%=msg%><% else %><%:Changes applied.%><% end %>
+-					</p>
+-					<p>
+-						<img src="<%=resource%>/icons/loading.gif" alt="<%:Loading%>" style="vertical-align:middle" />
+-						<%:Waiting for changes to be applied...%>
+-					</p>
+-				</fieldset>
+-			</div>
++		<div id="maincontainer" class="container">
++			<h2><a id="content" name="content"><%:System%> - <% if title then %><%=title%><% else %><%:Rebooting...%><% end %></a></h2>
++			<fieldset class="cbi-section">
++				<p>
++					<% if msg then %><div class="container">
++            <div class="alert-message warning">
++              <%=msg%>
++            </div>
++          </div><% else %><%:Changes applied.%><% end %>
++				</p>
++				<p>
++					<img src="<%=resource%>/icons/loading.gif" alt="<%:Loading%>" style="vertical-align:middle" />
++					<%:Waiting for changes to be applied...%>
++				</p>
++			</fieldset>
+ 		</div>
+ 	</body>
+ </html>
+diff -Naur luci-0.11+svn9415.orig/po/templates/base.pot luci-0.11+svn9415/po/templates/base.pot
+--- luci-0.11+svn9415.orig/po/templates/base.pot	2012-09-28 21:08:58.000000000 +0200
++++ luci-0.11+svn9415/po/templates/base.pot	2012-11-12 19:25:34.000000000 +0100
+@@ -2244,7 +2244,7 @@
+ msgstr ""
+ 
+ msgid ""
+-"The system is flashing now.<br /> DO NOT POWER OFF THE DEVICE!<br /> Wait a "
++"The system is flashing now.<br /><b>DO NOT POWER OFF THE DEVICE!</b><br /> Wait a "
+ "few minutes until you try to reconnect. It might be necessary to renew the "
+ "address of your computer to reach the device again, depending on your "
+ "settings."

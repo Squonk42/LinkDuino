@@ -1,0 +1,6 @@
+config gpio
+	option active_low '0'
+	option name 'USB Power'
+	option gpio '8'    
+	option value '1'
+	option direction 'out'

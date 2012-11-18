@@ -1,0 +1,12 @@
+diff -Naur luci-0.11+svn9413.orig/modules/admin-core/root/www/index.html luci-0.11+svn9413/modules/admin-core/root/www/index.html
+--- luci-0.11+svn9413.orig/modules/admin-core/root/www/index.html	2012-05-06 20:57:18.000000000 +0200
++++ luci-0.11+svn9413/modules/admin-core/root/www/index.html	2012-11-06 09:21:59.000000000 +0100
+@@ -4,7 +4,6 @@
+ <head>
+ <meta http-equiv="refresh" content="0; URL=/cgi-bin/luci" />
+ </head>
+-<body style="background-color: black">
+-<a style="color: white; text-decoration: none" href="/cgi-bin/luci">LuCI - Lua Configuration Interface</a>
++<body style="background-color: white">
+ </body>
+ </html>

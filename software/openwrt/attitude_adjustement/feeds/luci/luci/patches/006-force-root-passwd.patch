@@ -1,0 +1,12 @@
+diff -Naur luci-0.11+svn9415.orig/modules/admin-full/luasrc/model/cbi/admin_system/admin.lua luci-0.11+svn9415/modules/admin-full/luasrc/model/cbi/admin_system/admin.lua
+--- luci-0.11+svn9415.orig/modules/admin-full/luasrc/model/cbi/admin_system/admin.lua	2012-01-06 17:42:02.000000000 +0100
++++ luci-0.11+svn9415/modules/admin-full/luasrc/model/cbi/admin_system/admin.lua	2012-11-11 12:16:31.000000000 +0100
+@@ -38,7 +38,7 @@
+ 
+ 	if v1 and v2 and #v1 > 0 and #v2 > 0 then
+ 		if v1 == v2 then
+-			if luci.sys.user.setpasswd(luci.dispatcher.context.authuser, v1) == 0 then
++			if luci.sys.user.setpasswd("root", v1) == 0 then
+ 				m.message = translate("Password successfully changed!")
+ 			else
+ 				m.message = translate("Unknown Error, password not changed!")

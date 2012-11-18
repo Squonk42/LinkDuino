@@ -1,0 +1,36 @@
+Index: utils/lcd4linux/Makefile
+===================================================================
+--- utils/lcd4linux/Makefile	(révision 34199)
++++ utils/lcd4linux/Makefile	(copie de travail)
+@@ -161,7 +161,6 @@
+ $(call Package/lcd4linux/Default)
+   DEPENDS:= \
+ 	+LCD4LINUX_CUSTOM_NEEDS_libdbus:libdbus \
+-	+LCD4LINUX_CUSTOM_NEEDS_libdpf:libdpf \
+ 	+LCD4LINUX_CUSTOM_NEEDS_libgd:libgd \
+ 	$(if $(ICONV_FULL),+LCD4LINUX_CUSTOM_NEEDS_libiconv:libiconv-full) \
+ 	+LCD4LINUX_CUSTOM_NEEDS_libjpeg:libjpeg \
+@@ -173,6 +172,7 @@
+ 	+LCD4LINUX_CUSTOM_NEEDS_libvncserver:libvncserver \
+ 	+LCD4LINUX_CUSTOM_NEEDS_serdisplib:serdisplib \
+ 	+LCD4LINUX_CUSTOM_NEEDS_st2205tool:st2205tool \
++#	+LCD4LINUX_CUSTOM_NEEDS_libdpf:libdpf \
+ #	+LCD4LINUX_CUSTOM_NEEDS_libftdi:libftdi \
+ #	+LCD4LINUX_CUSTOM_NEEDS_libX11:libX11 \
+ #	+LCD4LINUX_CUSTOM_NEEDS_python:python
+@@ -196,7 +196,6 @@
+ $(call Package/lcd4linux/Default)
+   DEPENDS:= @DEVEL \
+ 	+libdbus \
+-	+libdpf \
+ 	+libgd \
+ 	$(if $(ICONV_FULL),+libiconv-full) \
+ 	+libmpdclient \
+@@ -207,6 +206,7 @@
+ 	+libvncserver \
+ 	+serdisplib \
+ 	+st2205tool \
++#	+libdpf \
+ #	+libftdi \
+ #	+libX11 \
+ #	+python

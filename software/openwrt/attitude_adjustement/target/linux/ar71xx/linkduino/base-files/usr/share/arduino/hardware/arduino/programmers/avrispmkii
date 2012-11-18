@@ -1,0 +1,3 @@
+config programmer 'programmer'
+	option communication 'usb'
+	option protocol 'stk500v2'

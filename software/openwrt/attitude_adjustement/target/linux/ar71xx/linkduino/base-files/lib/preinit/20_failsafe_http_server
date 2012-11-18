@@ -1,0 +1,34 @@
+#!/bin/sh
+# Copyright (C) 2012 Michel Stempin
+
+. /lib/ar71xx.sh
+
+get_hostname() {
+	local mac_addr
+  local board
+
+	[ -f /tmp/sysinfo/mac_addr ] && mac_addr=$(cat /tmp/sysinfo/mac_addr)
+  board=$(ar71xx_board_name)
+  last6=`echo $mac_addr | cut -d ':' -f 4-6 | tr -d ':'`
+  case "$board" in
+    tl-wr703n)
+      hostname="TP-LINK_$last6 (failsafe)"
+      ;;
+    tl-mr3020)
+      hostname="TP-LINK_POCKET_3020_$last6 (failsafe)"
+      uci_set network 'lan' ipaddr "192.168.0.254"
+      ;;
+    *)
+      hostname="(failsafe)"
+      ;;
+  esac
+  echo "$hostname"
+}
+
+failsafe_http_server() {
+  local hostname=$(get_hostname)
+  echo "$hostname" > /proc/sys/kernel/hostname
+  /usr/sbin/uhttpd -f -h /www -r "$(hostname)" -x /cgi-bin -t 60 -T 30 -A 1 -n 3 -R -p 0.0.0.0:80&
+}
+
+boot_hook_add failsafe failsafe_http_server

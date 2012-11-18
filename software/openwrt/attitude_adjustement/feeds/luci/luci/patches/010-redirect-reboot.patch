@@ -1,0 +1,20 @@
+--- luci-0.11+svn9415.orig/libs/web/luasrc/dispatcher.lua	2012-08-14 17:31:26.000000000 +0200
++++ luci-0.11+svn9415/libs/web/luasrc/dispatcher.lua	2012-11-12 14:59:18.000000000 +0100
+@@ -456,9 +456,14 @@
+ 			         "Install luci-mod-admin-full and retry. " ..
+ 			         "If the module is already installed, try removing the /tmp/luci-indexcache file.")
+ 		else
+-			error404("No page is registered at '/" .. table.concat(request, "/") .. "'.\n" ..
+-			         "If this url belongs to an extension, make sure it is properly installed.\n" ..
+-			         "If the extension was recently installed, try removing the /tmp/luci-indexcache file.")
++			local path = "/" .. table.concat(request, "/")
++			if path == "/failsafe/reboot" or path == "/admin/system/reboot" then
++			  http.redirect("/")
++			else
++			  error404("No page is registered at '/" .. table.concat(request, "/") .. "'.\n" ..
++			           "If this url belongs to an extension, make sure it is properly installed.\n" ..
++			           "If the extension was recently installed, try removing the /tmp/luci-indexcache file.")
++      end
+ 		end
+ 	end
+ end

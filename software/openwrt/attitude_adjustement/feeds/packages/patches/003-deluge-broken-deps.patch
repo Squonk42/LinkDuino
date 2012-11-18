@@ -1,0 +1,13 @@
+Index: net/deluge/Makefile
+===================================================================
+--- net/deluge/Makefile	(révision 34199)
++++ net/deluge/Makefile	(copie de travail)
+@@ -37,7 +37,7 @@
+ define Package/deluge-ui-gtk
+ $(call Package/deluge/Default)
+   TITLE+= (GTK+ UI)
+-  DEPENDS+=deluge +python-gtk
++#  DEPENDS+=deluge +python-gtk @BROKEN
+ endef
+ 
+ define Package/deluge-ui-web

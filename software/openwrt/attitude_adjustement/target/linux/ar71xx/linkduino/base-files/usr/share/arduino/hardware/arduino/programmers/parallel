@@ -1,0 +1,3 @@
+config programmer 'programmer'
+	option protocol 'dapa'
+	option force 'true'

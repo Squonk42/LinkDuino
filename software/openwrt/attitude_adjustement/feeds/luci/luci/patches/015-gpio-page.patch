@@ -1,0 +1,163 @@
+diff -Naur luci-0.11+svn9422.orig/modules/admin-full/luasrc/controller/admin/system.lua luci-0.11+svn9422/modules/admin-full/luasrc/controller/admin/system.lua
+--- luci-0.11+svn9422.orig/modules/admin-full/luasrc/controller/admin/system.lua	2012-11-16 17:56:25.000000000 +0100
++++ luci-0.11+svn9422/modules/admin-full/luasrc/controller/admin/system.lua	2012-11-16 18:09:32.000000000 +0100
+@@ -42,6 +42,11 @@
+ 
+ 	entry({"admin", "system", "buttons"}, cbi("admin_system/buttons"), _("Buttons"), 65)
+ 
++	if nixio.fs.access("/sys/class/gpio") then
++		entry({"admin", "system", "gpio"}, cbi("admin_system/gpio"), _("<abbr title=\"General Purpose Input/Output\">GPIO</abbr>"), 67)
++    entry({"admin", "system", "gpio_status"}, call("action_gpio_status"))
++	end
++
+ 	entry({"admin", "system", "flashops"}, call("action_flashops"), _("Backup / Flash Firmware"), 70)
+ 	entry({"admin", "system", "flashops", "backupfiles"}, form("admin_system/backupfiles"))
+ 
+@@ -63,6 +68,35 @@
+ 	luci.http.write_json({ timestring = os.date("%c") })
+ end
+ 
++function action_gpio_status()
++  local sysfs_path = "/sys/class/gpio/"
++  local fs   = require "nixio.fs"
++  local gpios = {}
++  for chip in fs.glob(sysfs_path .. "gpiochip[0-9]") do
++    local base = tonumber(nixio.fs.readfile(chip .. "/base")) or 0
++    local ngpio = tonumber(nixio.fs.readfile(chip .. "/ngpio")) or 1
++    if ngpio - 1 > base then
++      j = 1
++      for i = base, ngpio - 1 do
++        gpios[j] = i
++        j = j + 1
++      end
++    end
++  end
++  table.sort(gpios)
++  local current_values = ""
++  for i, gpio in ipairs(gpios) do
++    local current_value = fs.readfile(sysfs_path .. "/gpio" .. gpio .. "/value")
++    if current_value then
++      current_values = current_values .. tonumber(current_value)
++    else
++      current_values = current_values .. "?"
++    end
++  end
++	luci.http.prepare_content("application/json")
++	luci.http.write_json({ bits = current_values })
++end
++
+ function action_packages()
+ 	local ipkg = require("luci.model.ipkg")
+ 	local submit = luci.http.formvalue("submit")
+diff -Naur luci-0.11+svn9422.orig/modules/admin-full/luasrc/model/cbi/admin_system/gpio.lua luci-0.11+svn9422/modules/admin-full/luasrc/model/cbi/admin_system/gpio.lua
+--- luci-0.11+svn9422.orig/modules/admin-full/luasrc/model/cbi/admin_system/gpio.lua	1970-01-01 01:00:00.000000000 +0100
++++ luci-0.11+svn9422/modules/admin-full/luasrc/model/cbi/admin_system/gpio.lua	2012-11-16 18:11:50.000000000 +0100
+@@ -0,0 +1,73 @@
++--[[
++LuCI - Lua Configuration Interface
++
++Copyright 2012 Michel Stempin <michel.stempin@wanadoo.fr>
++
++Licensed under the Apache License, Version 2.0 (the "License");
++you may not use this file except in compliance with the License.
++You may obtain a copy of the License at
++
++	http://www.apache.org/licenses/LICENSE-2.0
++
++$Id: $
++]]--
++
++m = Map("gpio",
++	translate("<abbr title=\"General Purpose Input/Output\">GPIO</abbr> Configuration"),
++	translate("Customize the behavior of <abbr title=\"General Purpose Input/Output\">GPIO</abbr>s."))
++
++local sysfs_path = "/sys/class/gpio/"
++local gpios = {}
++
++local fs   = require "nixio.fs"
++
++for chip in fs.glob(sysfs_path .. "gpiochip[0-9]") do
++  local base = tonumber(nixio.fs.readfile(chip .. "/base")) or 0
++  local ngpio = tonumber(nixio.fs.readfile(chip .. "/ngpio")) or 1
++  if ngpio - 1 > base then
++    j = 1
++    for i = base, ngpio - 1 do
++      gpios[j] = i
++      j = j + 1
++    end
++  end
++end
++table.sort(gpios)
++
++s = m:section(TypedSection, "gpio", translate("<abbr title=\"General Purpose Input/Output\">GPIO</abbr>s"))
++s.addremove = true
++s.anonymous = true
++
++s.template  = "cbi/tblsection"
++
++name = s:option(Value, "name", translate("Name"))
++name.datatype = "string"
++name.rmempty = false
++
++gpio = s:option(ListValue, "gpio", translate("<abbr title=\"General Purpose Input/Output\">GPIO</abbr>"))
++gpio.datatype = "uinteger"
++gpio.rmempty = true
++for i, gpio_number in ipairs(gpios) do
++  gpio:value(gpio_number)
++end
++
++direction = s:option(ListValue, "direction", translate("Direction"))
++direction:value("in", translate("in"))
++direction:value("out", translate("out"))
++direction.datatype = "string"
++direction.rmempty = true
++
++active_low = s:option(Flag, "active_low", translate("Active Low"))
++active_low.rmempty = false
++
++init_value = s:option(ListValue, "value", translate("Init Value"))
++init_value:value("0", "0")
++init_value:value("1", "1")
++init_value:depends("direction", "out")
++init_value.datatype = "bool"
++init_value.rmempty = true
++
++current_value = s:option(DummyValue, "_current_value", translate("Current Value"))
++current_value.template = "admin_system/gpio_status"
++
++return m
+diff -Naur luci-0.11+svn9422.orig/modules/admin-full/luasrc/view/admin_system/gpio_status.htm luci-0.11+svn9422/modules/admin-full/luasrc/view/admin_system/gpio_status.htm
+--- luci-0.11+svn9422.orig/modules/admin-full/luasrc/view/admin_system/gpio_status.htm	1970-01-01 01:00:00.000000000 +0100
++++ luci-0.11+svn9422/modules/admin-full/luasrc/view/admin_system/gpio_status.htm	2012-11-16 17:12:06.000000000 +0100
+@@ -0,0 +1,31 @@
++<%+cbi/valueheader%>
++
++<script type="text/javascript">//<![CDATA[
++  var __only_once;
++  if (__only_once == undefined) {
++    __only_once = true;
++
++    // Ask for current values
++	  XHR.poll(3, '<%=luci.dispatcher.build_url("admin", "system", "gpio_status")%>', null,
++		  function(x, rv)
++		  {
++
++        // Get the gpio-status spans to update
++        var spans = document.getElementsByName('<%=self.option%>-gpio-status');
++        for (var i = 0; i < spans.length; i++) {
++
++          // Get the gpio number select element
++          var select = spans[i].parentElement.parentElement.parentElement.cells[1].firstElementChild.firstElementChild;
++
++          // Get the GPIO number
++          var gpio = Number(select.options[select.options.selectedIndex].value);
++				  spans[i].innerHTML = rv.bits.slice(gpio, gpio + 1) || '?';
++			  }
++		  }
++	  );
++  }
++//]]></script>
++
++<span name="<%=self.option%>-gpio-status"><em><%:Collecting data...%></em></span>
++
++<%+cbi/valuefooter%>

@@ -1,0 +1,18 @@
+
+config upload 'upload'
+	option maximum_size '28672'
+	option speed '19200'
+	option disable_flushing 'true'
+
+config bootloader 'bootloader'
+	option high_fuses '0xd8'
+	option extended_fuses '0x05'
+	option path 'bt'
+	option file 'ATmegaBOOT_168_atmega328_bt.hex'
+	option unlock_bits '0x3F'
+	option lock_bits '0x0F'
+
+config build 'build'
+	option f_cpu '16000000L'
+	option core 'arduino'
+	option variant 'eightanaloginputs'

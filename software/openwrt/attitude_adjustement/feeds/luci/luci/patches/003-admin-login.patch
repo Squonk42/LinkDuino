@@ -1,0 +1,24 @@
+diff -Naur luci-0.11+svn9415.orig/modules/admin-core/luasrc/controller/admin/servicectl.lua luci-0.11+svn9415/modules/admin-core/luasrc/controller/admin/servicectl.lua
+--- luci-0.11+svn9415.orig/modules/admin-core/luasrc/controller/admin/servicectl.lua	2011-12-20 20:04:04.000000000 +0100
++++ luci-0.11+svn9415/modules/admin-core/luasrc/controller/admin/servicectl.lua	2012-11-10 13:22:37.000000000 +0100
+@@ -15,7 +15,7 @@
+ module("luci.controller.admin.servicectl", package.seeall)
+ 
+ function index()
+-	entry({"servicectl"}, alias("servicectl", "status")).sysauth = "root"
++	entry({"servicectl"}, alias("servicectl", "status")).sysauth = {"root", "admin"}
+ 	entry({"servicectl", "status"}, call("action_status")).leaf = true
+ 	entry({"servicectl", "restart"}, call("action_restart")).leaf = true
+ end
+diff -Naur luci-0.11+svn9415.orig/modules/admin-full/luasrc/controller/admin/index.lua luci-0.11+svn9415/modules/admin-full/luasrc/controller/admin/index.lua
+--- luci-0.11+svn9415.orig/modules/admin-full/luasrc/controller/admin/index.lua	2011-10-26 05:04:18.000000000 +0200
++++ luci-0.11+svn9415/modules/admin-full/luasrc/controller/admin/index.lua	2012-11-10 13:23:21.000000000 +0100
+@@ -25,7 +25,7 @@
+ 	page.target  = firstchild()
+ 	page.title   = _("Administration")
+ 	page.order   = 10
+-	page.sysauth = "root"
++	page.sysauth = {"root", "admin"}
+ 	page.sysauth_authenticator = "htmlauth"
+ 	page.ucidata = true
+ 	page.index = true

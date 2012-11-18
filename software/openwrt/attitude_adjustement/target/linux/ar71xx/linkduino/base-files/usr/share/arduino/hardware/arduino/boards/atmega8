@@ -1,0 +1,16 @@
+
+config upload 'upload'
+	option maximum_size '7168'
+	option speed '19200'
+
+config bootloader 'bootloader'
+	option high_fuses '0xca'
+	option path 'atmega8'
+	option file 'ATmegaBOOT.hex'
+	option unlock_bits '0x3F'
+	option lock_bits '0x0F'
+
+config build 'build'
+	option f_cpu '16000000L'
+	option core 'arduino'
+	option variant 'standard'

@@ -1,0 +1,17 @@
+diff -Naur luci-0.11+svn9422.orig/applications/luci-firewall/luasrc/controller/firewall.lua luci-0.11+svn9422/applications/luci-firewall/luasrc/controller/firewall.lua
+--- luci-0.11+svn9422.orig/applications/luci-firewall/luasrc/controller/firewall.lua	2011-12-19 22:16:31.000000000 +0100
++++ luci-0.11+svn9422/applications/luci-firewall/luasrc/controller/firewall.lua	2012-11-14 08:20:38.000000000 +0100
+@@ -11,11 +11,11 @@
+ 
+ 	entry({"admin", "network", "firewall", "forwards"},
+ 		arcombine(cbi("firewall/forwards"), cbi("firewall/forward-details")),
+-		_("Port Forwards"), 20).leaf = true
++		_("Port Forwards"), 30).leaf = true
+ 
+ 	entry({"admin", "network", "firewall", "rules"},
+ 		arcombine(cbi("firewall/rules"), cbi("firewall/rule-details")),
+-		_("Traffic Rules"), 30).leaf = true
++		_("Traffic Rules"), 20).leaf = true
+ 
+ 	entry({"admin", "network", "firewall", "custom"},
+ 		cbi("firewall/custom"),

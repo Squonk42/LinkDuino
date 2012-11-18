@@ -1,0 +1,20 @@
+diff -Naur luci-0.11+svn9413.orig/modules/admin-full/luasrc/controller/admin/system.lua luci-0.11+svn9413/modules/admin-full/luasrc/controller/admin/system.lua
+--- luci-0.11+svn9413.orig/modules/admin-full/luasrc/controller/admin/system.lua	2012-08-08 12:11:00.000000000 +0200
++++ luci-0.11+svn9413/modules/admin-full/luasrc/controller/admin/system.lua	2012-11-02 18:34:39.000000000 +0100
+@@ -40,6 +40,8 @@
+ 		entry({"admin", "system", "leds"}, cbi("admin_system/leds"), _("<abbr title=\"Light Emitting Diode\">LED</abbr> Configuration"), 60)
+ 	end
+ 
++	entry({"admin", "system", "buttons"}, cbi("admin_system/buttons"), _("Buttons"), 65)
++
+ 	entry({"admin", "system", "flashops"}, call("action_flashops"), _("Backup / Flash Firmware"), 70)
+ 	entry({"admin", "system", "flashops", "backupfiles"}, form("admin_system/backupfiles"))
+ 
+diff -Naur luci-0.11+svn9413.orig/modules/admin-full/luasrc/model/cbi/admin_system/buttons.lua luci-0.11+svn9413/modules/admin-full/luasrc/model/cbi/admin_system/buttons.lua
+--- luci-0.11+svn9413.orig/modules/admin-full/luasrc/model/cbi/admin_system/buttons.lua	2009-11-01 02:37:03.000000000 +0100
++++ luci-0.11+svn9413/modules/admin-full/luasrc/model/cbi/admin_system/buttons.lua	2012-11-02 18:35:13.000000000 +0100
+@@ -36,3 +36,4 @@
+ 
+ max = s:option(Value, "max", translate("Maximum hold time"))
+ max.rmempty = true
++return m

@@ -1,0 +1,2 @@
+config programmer 'programmer'
+	option protocol 'usbtiny'

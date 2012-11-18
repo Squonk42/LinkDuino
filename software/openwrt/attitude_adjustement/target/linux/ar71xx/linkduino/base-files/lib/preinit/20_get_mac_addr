@@ -1,0 +1,18 @@
+#!/bin/sh
+# Copyright (C) 2012 Michel Stempin
+
+preinit_get_mac_addr() {
+    # if the preinit interface isn't specified and ifname is set in 
+    # preinit.arch use that interface
+    if [ -z "$pi_ifname" ]; then
+    	pi_ifname=$ifname    
+    fi
+
+    [ -n "$pi_ifname" ] && grep -q "$pi_ifname" /proc/net/dev && {
+      mac_addr=`ifconfig | grep "$pi_ifname" | tr -s ' ' | cut -d ' ' -f 5`
+      [ -e "/tmp/sysinfo/" ] || mkdir -p "/tmp/sysinfo/"
+      echo "$mac_addr" > /tmp/sysinfo/mac_addr
+    }
+}
+
+boot_hook_add preinit_main preinit_get_mac_addr

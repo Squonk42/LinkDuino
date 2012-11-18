@@ -1,0 +1,27 @@
+#!/bin/sh
+#
+# Copyright (C) 2011 OpenWrt.org
+#
+
+. /lib/functions/uci-defaults.sh
+. /lib/ar71xx.sh
+
+board=$(ar71xx_board_name)
+
+case "$board" in
+
+tl-mr3020)
+	ucidef_set_led_usbdev "usb" "USB" "tp-link:green:3g" "1-1"
+	ucidef_set_led_wlan "wlan" "WLAN" "tp-link:green:wlan" "phy0tpt"
+	ucidef_set_led_netdev "lan" "LAN" "tp-link:green:lan"  "eth0"
+	;;
+
+tl-wr703n)
+	ucidef_set_led_wlan "wlan" "WLAN" "tp-link:blue:system" "phy0tpt"
+  ;;
+
+esac
+
+ucidef_commit_leds
+
+exit 0

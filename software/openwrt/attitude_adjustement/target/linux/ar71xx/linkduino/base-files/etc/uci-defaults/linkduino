@@ -1,0 +1,61 @@
+#!/bin/sh
+#
+# Copyright (C) 2012 Michel Stempin
+#
+
+. /lib/functions.sh
+. /lib/config/uci.sh
+. /lib/ar71xx.sh
+
+get_mac_address() {
+  local mac_addr
+
+  [ -f /tmp/sysinfo/mac_addr ] && mac_addr=$(cat /tmp/sysinfo/mac_addr)
+  echo "$mac_addr"
+}
+
+board=$(ar71xx_board_name)
+mac_addr=$(get_mac_address)
+last6=`echo $mac_addr | cut -d ':' -f 4-6 | tr -d ':'`
+hostname=
+case "$board" in
+tl-wr703n)
+  hostname="TP-LINK_$last6"
+  ;;
+tl-mr3020)
+  hostname="TP-LINK_POCKET_3020_$last6"
+  uci_set network 'lan' ipaddr "192.168.0.254"
+  ;;
+esac
+[ "$hostname" != "" ] && {
+  local old_hostname=`uci get system.@system[0].hostname`
+  if [ "$old_hostname" != "" -a "$old_hostname" != "TP-LINK" ]; then
+    hostname="$old_hostname"
+  else
+    uci batch <<-EOF
+set system.@system[0].hostname="$hostname"
+commit system
+set wireless.@wifi-iface[0].ssid="$hostname"
+set wireless.@wifi-device[0].macaddr=$mac_addr
+delete wireless.@wifi-device[0].disabled
+delete wireless.@wifi-iface[1]
+delete wireless.@wifi-device[1]
+commit wireless
+add firewall rule
+set firewall.@rule[-1].name='Allow-HTTP-Admin'
+set firewall.@rule[-1].target=ACCEPT
+set firewall.@rule[-1].src=wan
+set firewall.@rule[-1].proto=tcp
+set firewall.@rule[-1].dest_port=80
+add firewall rule
+set firewall.@rule[-1].name='Allow-SSH-Admin'
+set firewall.@rule[-1].target=ACCEPT
+set firewall.@rule[-1].src=wan
+set firewall.@rule[-1].proto=tcp
+set firewall.@rule[-1].dest_port=22
+commit firewall
+EOF
+  fi
+  mv /usr/lib/lua/luci/controller/admin/index.lua.disabled /usr/lib/lua/luci/controller/admin/index.lua
+  mv /usr/lib/lua/luci/controller/failsafe/failsafe.lua /usr/lib/lua/luci/controller/failsafe/failsafe.lua.disabled
+}

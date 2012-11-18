@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# Copyright (C) 2011 OpenWrt.org
+#
+
+[ -e /etc/config/network ] && exit 0
+
+touch /etc/config/network
+
+. /lib/functions/uci-defaults.sh
+. /lib/ar71xx.sh
+
+ucidef_set_interface_loopback
+
+board=$(ar71xx_board_name)
+
+case "$board" in
+tl-mr3020 |\
+tl-wr703n)
+  ucidef_set_interfaces_lan_wan "eth0" "wlan0"
+  uci commit network
+	;;
+esac
+
+exit 0

@@ -1,0 +1,12 @@
+Index: target/linux/ar71xx/base-files.mk
+===================================================================
+--- target/linux/ar71xx/base-files.mk	(révision 34222)
++++ target/linux/ar71xx/base-files.mk	(copie de travail)
+@@ -1,5 +1,5 @@
++ifeq ($(CONFIG_TARGET_ar71xx_linkduino),)
+ define Package/base-files/install-target
+ 	rm -f $(1)/etc/config/network
+ endef
+-
+-
++endif

@@ -1,0 +1,17 @@
+
+config upload 'upload'
+	option maximum_size '258048'
+	option speed '115200'
+
+config bootloader 'bootloader'
+	option high_fuses '0xD8'
+	option extended_fuses '0xFD'
+	option path 'stk500v2'
+	option file 'stk500boot_v2_mega2560.hex'
+	option unlock_bits '0x3F'
+	option lock_bits '0x0F'
+
+config build 'build'
+	option f_cpu '16000000L'
+	option core 'arduino'
+	option variant 'mega'

@@ -1,0 +1,4 @@
+config programmer 'programmer'
+	option communication 'serial'
+	option protocol 'stk500v1'
+	option speed '19200'

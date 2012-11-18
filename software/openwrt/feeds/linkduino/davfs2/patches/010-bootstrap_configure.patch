@@ -1,0 +1,74 @@
+--- a/bootstrap	2009-05-01 23:08:37.000000000 +0400
++++ b/bootstrap	2012-08-01 14:35:10.537076126 +0400
+@@ -7,9 +7,9 @@
+ # and this notice are preserved.
+ 
+ set -ex
++gnulib-tool --import argz canonicalize
+ autopoint --force
+-cd man; po4a po4a.conf; cd ..
+-aclocal -I config
++aclocal -I config -I m4
+ autoheader
+ automake --add-missing --force-missing --copy
+ autoconf
+--- a/Makefile.am	2009-04-14 23:54:53.000000000 +0400
++++ b/Makefile.am	2012-08-01 11:11:51.318795194 +0400
+@@ -20,8 +20,10 @@
+ ## Process this file with automake to produce Makefile.in
+ 
+ EXTRA_DIST = bootstrap BUGS FAQ README.translators \
+-             config/COPYING.davfs2 config/INSTALL.davfs2
+-SUBDIRS = po etc man src
+-ACLOCAL_AMFLAGS = -I config
++             config/COPYING.davfs2 config/INSTALL.davfs2 \
++             m4/gnulib-cache.m4
++SUBDIRS = etc lib src
++ACLOCAL_AMFLAGS = -I config -I m4
++
+ doc_DATA = AUTHORS BUGS ChangeLog COPYING FAQ INSTALL NEWS README \
+            README.translators THANKS TODO
+--- a/src/Makefile.am	2009-04-14 23:54:56.000000000 +0400
++++ b/src/Makefile.am	2012-08-01 11:13:15.442772316 +0400
+@@ -33,6 +33,7 @@
+ umount_davfs_SOURCES = umount_davfs.c defaults.h
+ 
+ AM_CFLAGS = -Wall
++AM_CPPFLAGS = -I$(top_builddir)/lib -I$(top_srcdir)/lib
+ DEFS = -DPROGRAM_NAME=\"mount.davfs\" \
+        -DDAV_SYS_CONF_DIR=\"$(pkgsysconfdir)\" \
+        -DDAV_SYS_RUN=\"$(pkglocalstatedir)\" \
+@@ -46,6 +47,7 @@
+        -DDAV_USER=\"$(dav_user)\" \
+        -DDAV_GROUP=\"$(dav_group)\" @DEFS@
+ LIBS = $(NEON_LIBS) @LIBS@
++LDADD = ../lib/libgnu.a
+ 
+ install-exec-hook:
+ 	chmod u+s $(DESTDIR)$(sbindir)/mount.davfs; \
+
+--- ./configure.ac.orig	2012-07-19 15:38:47.000000000 +0400
++++ ./configure.ac	2012-08-03 13:06:32.868648722 +0400
+@@ -30,6 +30,9 @@
+ 
+ # Checks for programs.
+ AC_PROG_CC
++gl_EARLY
++gl_INIT
++AC_PROG_RANLIB
+ AC_PROG_INSTALL
+ AC_PROG_LN_S
+ 
+@@ -86,11 +89,8 @@
+ AC_DEFINE([_GNU_SOURCE], 1, [Define to enable GNU extensions])
+ 
+ AC_CONFIG_FILES([Makefile
+-                 po/Makefile.in
+                  etc/Makefile
+-                 man/Makefile
+-                 man/de/Makefile
+-                 man/es/Makefile
++                 lib/Makefile
+                  src/Makefile])
+ AC_OUTPUT
+ DAV_MESSAGE

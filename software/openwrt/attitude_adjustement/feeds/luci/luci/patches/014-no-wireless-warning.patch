@@ -1,0 +1,18 @@
+diff -Naur luci-0.11+svn9422.orig/themes/bootstrap/luasrc/view/themes/bootstrap/header.htm luci-0.11+svn9422/themes/bootstrap/luasrc/view/themes/bootstrap/header.htm
+--- luci-0.11+svn9422.orig/themes/bootstrap/luasrc/view/themes/bootstrap/header.htm	2012-11-14 08:24:11.000000000 +0100
++++ luci-0.11+svn9422/themes/bootstrap/luasrc/view/themes/bootstrap/header.htm	2012-11-14 12:48:37.000000000 +0100
+@@ -200,6 +200,14 @@
+         <a href="<%=pcdata(luci.dispatcher.build_url("admin/system/admin"))%>"><%:Go to password configuration...%></a>
+ 	</div>
+ </div>
++<%- elseif require("luci.model.uci").cursor():get("wireless", "radio0", "disabled") == nil then -%>
++<div class="container">
++	<div class="alert-message warning">
++		<h4><%:No wireless network defined!%></h4>
++		<%:There is no wireless network defined on this router.%><br>
++        <a href="<%=pcdata(luci.dispatcher.build_url("admin/network/wireless"))%>"><%:Go to wireless network configuration...%></a>
++	</div>
++</div>
+ <%- end -%>
+ 
+ <div id="maincontent" class="container">

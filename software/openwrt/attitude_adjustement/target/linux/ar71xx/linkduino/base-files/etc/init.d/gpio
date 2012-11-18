@@ -1,0 +1,84 @@
+#!/bin/sh /etc/rc.common
+# (C) 2012 Michel Stempin <michel.stempin@wanadoo.fr>
+set -xv
+START=95
+
+all_gpios() {                                        
+  local gpios=
+
+  for chip in /sys/class/gpio/gpiochip*; do
+    local base
+    local ngpio
+                            
+    base=$(cat $chip/base)
+    ngpio=$(cat $chip/ngpio)
+    [ $ngpio -ge $base ] && {
+      for i in $(seq $base $(expr $ngpio - 1)); do
+        gpios="$gpios $i"
+      done
+    }                        
+  done                       
+  echo $gpios | sort         
+}
+
+unused_gpios=
+
+load_gpio() {
+  local name
+  local gpio
+  local direction
+  local active_low
+  local value
+
+  config_get name $1 name
+  config_get gpio $1 gpio
+  config_get direction $1 direction
+  config_get_bool active_low $1 active_low "nil"
+  config_get_bool value $1 value "nil"
+  [ -e /sys/class/gpio/gpio${gpio} ] ||
+    echo $gpio > /sys/class/gpio/export 2>/dev/null
+  [ -e /sys/class/gpio/gpio${gpio} ] && {
+    echo "setting up gpio ${name}"
+    unused_gpios=$(echo $unused_gpios | sed -e "s/^$gpio //" -e "s/ $gpio / /" -e "s/ $gpio\$//")
+    [ "$active_low" != "nil" ] && {
+      [ $active_low -eq 1 ] &&
+        echo 1 >/sys/class/gpio/gpio${gpio}/active_low
+      [ $active_low -eq 1 ] ||
+        echo 0 >/sys/class/gpio/gpio${gpio}/active_low
+    }
+    [ -e /sys/class/gpio/gpio${gpio}/direction ] && {
+      [ "$direction" = "out" ] &&
+        echo 1 > /sys/class/gpio/gpio${gpio}/direction
+    }
+    [ "$direction" = "out" ] ||
+      echo 0 > /sys/class/gpio/gpio${gpio}/direction
+    [ "$direction" = "out" ] && {
+      [ "$value" != "nil" ] && {
+        [ $value -eq 1 ] &&
+          echo 1 >/sys/class/gpio/gpio${gpio}/value
+        [ $value -eq 1 ] ||
+          echo 0 >/sys/class/gpio/gpio${gpio}/value
+      }
+    }
+  }
+}
+
+reload() {
+  [ -e /sys/class/gpio/ ] && {
+    unused_gpios=$(all_gpios)
+    config_load gpio
+    config_foreach load_gpio gpio
+    for gpio in $unused_gpios; do
+      [ -e /sys/class/gpio/gpio$gpio ] &&
+        echo $gpio > /sys/class/gpio/unexport 2>/dev/null
+    done
+  }
+}
+
+start() {
+  reload
+}
+
+restart() {
+  reload
+}

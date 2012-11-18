@@ -1,0 +1,31 @@
+--- a/src/mount_davfs.c	2012-08-03 16:09:25.000000000 +0400
++++ b/src/mount_davfs.c	2012-08-03 15:33:12.000000000 +0400
+@@ -77,6 +77,7 @@
+ #include "kernel_interface.h"
+ #include "cache.h"
+ #include "webdav.h"
++#include "lib/canonicalize.h"
+ 
+ #ifdef ENABLE_NLS
+ #define _(String) gettext(String)
+--- a/src/umount_davfs.c	2012-07-19 15:32:12.000000000 +0400
++++ b/src/umount_davfs.c	2012-08-03 15:33:26.000000000 +0400
+@@ -41,6 +41,7 @@
+ #include <ne_string.h>
+ 
+ #include "defaults.h"
++#include "lib/canonicalize.h"
+ 
+ #ifdef ENABLE_NLS
+ #define _(String) gettext(String)
+--- a/src/webdav.c	2012-08-03 16:09:25.000000000 +0400
++++ b/src/webdav.c	2012-08-03 15:32:26.000000000 +0400
+@@ -1258,7 +1258,7 @@
+     char *out = buf;
+ 
+     iconv(conv, NULL, NULL, &out, &outsize);
+-    if (iconv(conv, &in, &insize, &out, &outsize) >= 0
++    if (iconv(conv, (const char **)&in, &insize, &out, &outsize) >= 0
+             && insize == 0 && outsize >= MB_LEN_MAX) {
+         memset(out, 0, MB_LEN_MAX);
+         free(*s);

@@ -1,0 +1,40 @@
+diff -Naur luci-0.11+svn9422.orig/themes/bootstrap/htdocs/luci-static/bootstrap/cascade.css luci-0.11+svn9422/themes/bootstrap/htdocs/luci-static/bootstrap/cascade.css
+--- luci-0.11+svn9422.orig/themes/bootstrap/htdocs/luci-static/bootstrap/cascade.css	2012-08-08 17:30:05.000000000 +0200
++++ luci-0.11+svn9422/themes/bootstrap/htdocs/luci-static/bootstrap/cascade.css	2012-11-13 12:46:59.000000000 +0100
+@@ -747,7 +747,7 @@
+ 	text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+ }
+ 
+-header h3 a:hover, header .brand:hover, header ul .active > a {
++header h3 a:hover, header .logo:hover, header .brand:hover, header ul .active > a {
+ 	background-color: #333;
+ 	background-color: rgba(255, 255, 255, 0.05);
+ 	color: #ffffff;
+@@ -758,7 +758,15 @@
+ 	position: relative;
+ }
+ 
+-header h3 a, header .brand {
++.logo {
++  background-image: url('../resources/LinkDuino.png');
++	background-repeat: no-repeat;
++  background-position: center center;
++  width: 83px;
++  height: 20px;
++}
++
++header h3 a, header .logo, header .brand {
+ 	float: left;
+ 	display: block;
+ 	padding: 8px 20px 12px;
+diff -Naur luci-0.11+svn9422.orig/themes/bootstrap/luasrc/view/themes/bootstrap/header.htm luci-0.11+svn9422/themes/bootstrap/luasrc/view/themes/bootstrap/header.htm
+--- luci-0.11+svn9422.orig/themes/bootstrap/luasrc/view/themes/bootstrap/header.htm	2012-11-12 22:21:00.000000000 +0100
++++ luci-0.11+svn9422/themes/bootstrap/luasrc/view/themes/bootstrap/header.htm	2012-11-13 11:43:20.000000000 +0100
+@@ -114,6 +114,7 @@
+   <header>
+    <div class="fill">
+     <div class="container">
++     <a class="logo" href="https://github.com/Squonk42/LinkDuino" />
+      <a class="brand" href="#"><%=hostname%></a>
+      <ul class="nav">
+ 	 <%-

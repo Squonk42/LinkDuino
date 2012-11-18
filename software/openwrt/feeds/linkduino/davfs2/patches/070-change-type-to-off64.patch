@@ -1,0 +1,12 @@
+--- a/src/webdav.h	2009-06-04 22:57:48.000000000 +0400
++++ b/src/webdav.h	2012-08-02 10:33:37.302711844 +0400
+@@ -252,7 +252,7 @@
+    If quota information is not
+    available, an error is returned and available and used are not changed. */ 
+ int
+-dav_quota(const char *path, off_t *total, off_t *used);
++dav_quota(const char *path, off64_t *total, off64_t *used);
+ 
+ 
+ /* Sets or resets the execute property of file path.
+
