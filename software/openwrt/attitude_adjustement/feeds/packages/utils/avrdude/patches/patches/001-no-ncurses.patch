@@ -1,0 +1,12 @@
+diff -Naur avrdude-5.11.1.orig/configure.ac avrdude-5.11.1/configure.ac
+--- avrdude-5.11.1.orig/configure.ac	2011-09-15 17:02:16.000000000 +0200
++++ avrdude-5.11.1/configure.ac	2012-11-19 12:50:18.000000000 +0100
+@@ -46,7 +46,7 @@
+ 
+ # Checks for libraries.
+ AC_CHECK_LIB([termcap], [tputs])
+-AC_CHECK_LIB([ncurses], [tputs])
++#AC_CHECK_LIB([ncurses], [tputs])
+ AC_CHECK_LIB([readline], [readline])
+ AC_SEARCH_LIBS([gethostent], [nsl])
+ AC_SEARCH_LIBS([setsockopt], [socket])
