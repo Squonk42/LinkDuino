@@ -1,0 +1,27 @@
+#!/bin/sh
+#
+# Copyright (C) 2012 Michel Stempin
+#
+
+. /lib/functions/uci-defaults.sh
+. /lib/ar71xx.sh
+
+board=$(ar71xx_board_name)
+
+case "$board" in
+
+tl-mr3020)
+	ucidef_set_button "wps" "wps" "released" "firstboot;reboot" 3 10
+	ucidef_set_button "ap" "BTN_0" "released" "logger AP mode"
+	ucidef_set_button "wisp" "BTN_0" "pressed" "logger WISP mode"
+	ucidef_set_button "3g" "BTN_1" "released" "logger 3G mode"
+	;;
+
+tl-wr703n)
+	ucidef_set_button "reset" "reset" "released" "firstboot;reboot" 3 10
+  ;;
+
+esac
+
+ucidef_commit_buttons
+sed -i 's/\^button/button/' /etc/hotplug2.rules

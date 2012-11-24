@@ -1,4 +1,3 @@
-
 config interface 'loopback'
 	option ifname 'lo'
 	option proto 'static'

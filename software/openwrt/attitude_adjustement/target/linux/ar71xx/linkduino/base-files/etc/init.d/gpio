@@ -1,6 +1,5 @@
 #!/bin/sh /etc/rc.common
 # (C) 2012 Michel Stempin <michel.stempin@wanadoo.fr>
-set -xv
 START=95
 
 all_gpios() {                                        
