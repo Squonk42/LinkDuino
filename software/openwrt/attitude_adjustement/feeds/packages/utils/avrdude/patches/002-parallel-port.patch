@@ -1,0 +1,10 @@
+--- avrdude-5.11.1.orig/configure	2012-11-20 22:17:12.000000000 +0100
++++ avrdude-5.11.1/configure	2012-11-22 12:30:58.000000000 +0100
+@@ -5780,6 +5780,7 @@
+ # Compiler output produced by configure, useful for debugging
+ # configure, is in config.log if it exists.
+ 
++confsubst="-e /^@HAVE_PARPORT_BEGIN@/,/^@HAVE_PARPORT_END@/d"
+ debug=false
+ ac_cs_recheck=false
+ ac_cs_silent=false
