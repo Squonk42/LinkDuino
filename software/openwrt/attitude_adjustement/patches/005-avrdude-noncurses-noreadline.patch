@@ -1,7 +1,7 @@
-Index: utils/avrdude/Makefile
+Index: feeds/packages/utils/avrdude/Makefile
 ===================================================================
---- utils/avrdude/Makefile	(révision 34199)
-+++ utils/avrdude/Makefile	(copie de travail)
+--- feeds/packages/utils/avrdude/Makefile	(révision 34199)
++++ feeds/packages/utils/avrdude/Makefile	(copie de travail)
 @@ -8,12 +8,12 @@
  include $(TOPDIR)/rules.mk
  

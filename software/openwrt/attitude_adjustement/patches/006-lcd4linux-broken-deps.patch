@@ -1,7 +1,7 @@
-Index: utils/lcd4linux/Makefile
+Index: feeds/packages/utils/lcd4linux/Makefile
 ===================================================================
---- utils/lcd4linux/Makefile	(révision 34199)
-+++ utils/lcd4linux/Makefile	(copie de travail)
+--- feeds/packages/utils/lcd4linux/Makefile	(révision 34199)
++++ feeds/packages/utils/lcd4linux/Makefile	(copie de travail)
 @@ -161,7 +161,6 @@
  $(call Package/lcd4linux/Default)
    DEPENDS:= \

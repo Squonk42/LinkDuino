@@ -1,7 +1,7 @@
-Index: net/deluge/Makefile
+Index: feeds/packages/net/deluge/Makefile
 ===================================================================
---- net/deluge/Makefile	(révision 34199)
-+++ net/deluge/Makefile	(copie de travail)
+--- feeds/packages/net/deluge/Makefile	(révision 34199)
++++ feeds/packages/net/deluge/Makefile	(copie de travail)
 @@ -37,7 +37,7 @@
  define Package/deluge-ui-gtk
  $(call Package/deluge/Default)
