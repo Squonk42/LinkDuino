@@ -1,0 +1,12 @@
+diff -Naur luci-0.11+svn9488.orig/modules/admin-full/luasrc/model/cbi/admin_system/buttons.lua luci-0.11+svn9488/modules/admin-full/luasrc/model/cbi/admin_system/buttons.lua
+--- luci-0.11+svn9488.orig/modules/admin-full/luasrc/model/cbi/admin_system/buttons.lua	2012-11-22 18:26:11.000000000 +0100
++++ luci-0.11+svn9488/modules/admin-full/luasrc/model/cbi/admin_system/buttons.lua	2012-11-22 18:33:04.000000000 +0100
+@@ -24,7 +24,7 @@
+ act = s:option(ListValue, "action",
+ 	translate("Action"),
+ 	translate("Specifies the button state to handle"))
+-
++act:value("pressed")
+ act:value("released")
+ 
+ s:option(Value, "handler",

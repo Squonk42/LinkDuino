@@ -1,0 +1,77 @@
+diff -Naur neon-0.29.6.orig/src/ne_gnutls.c neon-0.29.6/src/ne_gnutls.c
+--- neon-0.29.6.orig/src/ne_gnutls.c	2011-05-03 14:07:08.000000000 +0200
++++ neon-0.29.6/src/ne_gnutls.c	2012-11-01 10:24:56.000000000 +0100
+@@ -1258,20 +1258,31 @@
+ {
+     unsigned char buffer[10*1024];
+     size_t len = sizeof buffer;
++    ne_ssl_certificate *cert_stack[10];
++    int i;
++
++    for (i = 0; cert && i < 10; i++, cert = cert->issuer) {
++      cert_stack[i] = cert;
++    }
++    if (i == 10) {
++      return -1;
++    }
+ 
+     FILE *fp = fopen(filename, "w");
+ 
+     if (fp == NULL) return -1;
+ 
+-    if (gnutls_x509_crt_export(cert->subject, GNUTLS_X509_FMT_PEM, buffer,
+-                               &len) < 0) {
+-        fclose(fp);
+-        return -1;
+-    }
++    for (--i; i >= 0; i--) {
++        if (gnutls_x509_crt_export(cert_stack[i]->subject, GNUTLS_X509_FMT_PEM, buffer,
++                                   &len) < 0) {
++            fclose(fp);
++            return -1;
++        }
+ 
+-    if (fwrite(buffer, len, 1, fp) != 1) {
+-        fclose(fp);
+-        return -1;
++        if (fwrite(buffer, len, 1, fp) != 1) {
++            fclose(fp);
++            return -1;
++        }
+     }
+ 
+     if (fclose(fp) != 0)
+diff -Naur neon-0.29.6.orig/src/ne_openssl.c neon-0.29.6/src/ne_openssl.c
+--- neon-0.29.6.orig/src/ne_openssl.c	2009-12-30 22:28:48.000000000 +0100
++++ neon-0.29.6/src/ne_openssl.c	2012-11-01 10:24:56.000000000 +0100
+@@ -981,14 +981,26 @@
+ 
+ int ne_ssl_cert_write(const ne_ssl_certificate *cert, const char *filename)
+ {
++    ne_ssl_certificate *cert_stack[10];
++    int i;
++
++    for (i = 0; cert && i < 10; i++, cert = cert->issuer) {
++      cert_stack[i] = cert;
++    }
++    if (i == 10) {
++      return -1;
++    }
++
+     FILE *fp = fopen(filename, "w");
+ 
+     if (fp == NULL) return -1;
+ 
+-    if (PEM_write_X509(fp, cert->subject) != 1) {
+-        ERR_clear_error();
+-        fclose(fp);
+-        return -1;
++    for (--i; i >= 0; i--) {
++        if (PEM_write_X509(fp, cert_stack[i]->subject) != 1) {
++            ERR_clear_error();
++            fclose(fp);
++            return -1;
++        }
+     }
+     
+     if (fclose(fp) != 0)

@@ -1,0 +1,24 @@
+Index: feeds/luci/luci/Makefile
+===================================================================
+--- feeds/luci/luci/Makefile	(revision 9491)
++++ feeds/luci/luci/Makefile	(working copy)
+@@ -589,12 +589,18 @@
+   LUCI_BUILD_PACKAGES += luci$(if $(1),-$(1))
+ endef
+ 
+-$(eval $(call collection,,\
++$(eval $(call collection,openwrt,\
+ 	Standard OpenWrt set including full admin with ppp support and the \
+ 	default OpenWrt theme,\
+ 	+uhttpd +luci-mod-admin-full +luci-theme-openwrt +luci-app-firewall \
+ 	+luci-proto-core +luci-proto-ppp +libiwinfo-lua))
+ 
++$(eval $(call collection,bootstrap,\
++	Standard OpenWrt set including full admin with ppp support and the \
++	Bootstrap theme,\
++	+uhttpd +luci-mod-admin-full +luci-theme-bootstrap +luci-app-firewall \
++	+luci-proto-core +luci-proto-ppp +libiwinfo-lua))
++
+ $(eval $(call collection,ssl,\
+ 	Standard OpenWrt set with HTTPS support,\
+ 	+luci +uhttpd-mod-tls +px5g))
