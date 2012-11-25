@@ -1,0 +1,15 @@
+20cb75e0415d08b5a580bed3e4f50600 *openwrt-ar71xx-linkduino-nbg460n_550n_550nh-u-boot.bin
+0bfe640f3b14d8158c619e71b5a15e1a *openwrt-ar71xx-linkduino-root.jffs2-128k
+8dd694f8e735fab2675dc327f7dabc6f *openwrt-ar71xx-linkduino-root.jffs2-256k
+1d2b8f7b473e43e7998a78d129f30b67 *openwrt-ar71xx-linkduino-root.jffs2-64k
+47c927926c206913b74c6583be393b2d *openwrt-ar71xx-linkduino-root.squashfs
+a12fcfa9495e69474a21010b2afbf323 *openwrt-ar71xx-linkduino-root.squashfs-64k
+3e37a4f01cdecc5bc886354fe2e7e801 *openwrt-ar71xx-linkduino-rootfs.tar.gz
+de48a7351699371ca83a95059d9c6702 *openwrt-ar71xx-linkduino-tl-wr703n-v1-squashfs-factory.bin
+23f9520a689cf79e22caf46370569f10 *openwrt-ar71xx-linkduino-tl-wr703n-v1-squashfs-sysupgrade.bin
+174c418a3ecaf81f38eb3c3c293b6932 *openwrt-ar71xx-linkduino-uImage-gzip.bin
+30597d49c1eb9881cb70b6c05cc173ca *openwrt-ar71xx-linkduino-uImage-lzma.bin
+e2703e36b693719a7bca737c2ffbe75c *openwrt-ar71xx-linkduino-vmlinux.bin
+505b789da5b0b82f1d6dedb553e4f978 *openwrt-ar71xx-linkduino-vmlinux.elf
+eaa5f890892d12d56dc729cba37e6cf5 *openwrt-ar71xx-linkduino-vmlinux.gz
+6cc92752e16aebe60b048397ff6130c8 *openwrt-ar71xx-linkduino-vmlinux.lzma
