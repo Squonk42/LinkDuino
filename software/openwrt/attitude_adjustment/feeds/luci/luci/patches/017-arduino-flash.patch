@@ -1,0 +1,402 @@
+diff -Naur luci-0.11+svn9510.orig/modules/admin-full/luasrc/controller/admin/arduino.lua luci-0.11+svn9510/modules/admin-full/luasrc/controller/admin/arduino.lua
+--- luci-0.11+svn9510.orig/modules/admin-full/luasrc/controller/admin/arduino.lua	1970-01-01 01:00:00.000000000 +0100
++++ luci-0.11+svn9510/modules/admin-full/luasrc/controller/admin/arduino.lua	2012-11-29 18:02:56.000000000 +0100
+@@ -0,0 +1,182 @@
++--[[
++LuCI - Lua Configuration Interface
++
++Copyright 2012 Michel Stempin <michel.stempin@wanadoo.fr>
++
++Licensed under the Apache License, Version 2.0 (the "License");
++you may not use this file except in compliance with the License.
++You may obtain a copy of the License at
++
++	http://www.apache.org/licenses/LICENSE-2.0
++
++$Id: $
++]]--
++
++module("luci.controller.admin.arduino", package.seeall)
++
++function index()
++   entry({"admin", "arduino"}, alias("admin", "arduino", "flash"), _("Arduino"), 50).index = true
++   entry({"admin", "arduino", "flash"}, call("action_flash_arduino"), _("Flash Arduino"), 10)
++   local page = entry({"admin", "arduino", "avrdude"}, call("avrdude"), nil)
++   page.leaf = true
++end
++
++function action_flash_arduino()
++   local sys = require "luci.sys"
++   local fs  = require "luci.fs"
++   local image_tmp   = "/tmp/Arduino_firmware.hex"
++
++   local function image_supported()
++      local result = true;
++      for line in io.lines(image_tmp) do
++         size, address, rectype, data = string.match (line, "^:(%x%x)(%x%x%x%x)(%x%x)(%x+)%s*$")
++         if not size then
++            result = false
++         end
++      end
++      if tonumber(size) ~= 0 or tonumber(address) ~= 0 or tonumber(rectype) ~= 1 then
++         result = false
++      end
++      return result
++   end
++
++   local function image_checksum()
++      return (luci.sys.exec("md5sum %q" % image_tmp):match("^([^%s]+)"))
++   end
++
++   local fp
++   luci.http.setfilehandler(
++      function(meta, chunk, eof)
++         if not fp then
++            if meta and meta.name == "image" then
++               fp = io.open(image_tmp, "w")
++            end
++         end
++         if chunk then
++            fp:write(chunk)
++         end
++         if eof then
++            fp:close()
++         end
++      end
++   )
++
++   if luci.http.formvalue("image") or luci.http.formvalue("step") then
++      --
++      -- Confirm Arduino Firmware Flashing
++      --
++      local step = tonumber(luci.http.formvalue("step") or 1)
++      local board_id = luci.http.formvalue("board")
++      local boards = board_list()
++      local board_name = boards[board_id]
++      local tty = luci.http.formvalue("tty")
++      if step == 1 then
++         if image_supported() then
++            luci.template.render("admin_arduino/confirm", {
++                                    checksum = image_checksum(),
++                                    size     = nixio.fs.stat(image_tmp).size,
++                                    board_id = board_id,
++                                    board_name = board_name,
++                                    tty = tty
++                                 })
++         else
++            nixio.fs.unlink(image_tmp)
++            luci.template.render("admin_arduino/upload", {
++                                    image_invalid = true
++                                 })
++         end
++         --
++         -- Start flashing Arduino Board
++         --
++      elseif step == 2 then
++         luci.template.render("admin_arduino/flash", {
++                                 title = luci.i18n.translate("Flashing..."),
++                                 msg   = luci.i18n.translate("The system is flashing the Arduino board now.<br /><b>DO NOT POWER OFF THE SYSTEM!</b>."),
++                                 board = board_id,
++                                 tty = tty
++                              })
++      end
++   else
++      --
++      -- Upload Arduino Firmware
++      --
++      luci.template.render("admin_arduino/upload", {
++                              boards = board_list(),
++                              ttys = tty_list()
++                           })
++   end
++end
++
++function avrdude()
++   local path = luci.dispatcher.context.requestpath
++   local image_tmp   = "/tmp/Arduino_firmware.hex"
++   if #path == 6 then
++      local board_id = path[4]
++      local tty = "/" .. path[5] .. "/" .. path[6]
++      if board_id and board_id:match("^[a-zA-Z0-9%-_]+$") and tty and tty:match("^/dev/tty[A-Z]+[0-9]+$") then
++         local programmer, baudrate, partno = board_param(board_id)
++         if programmer then
++            luci.http.prepare_content("text/plain")
++            local util = io.popen("echo 0 > /sys/class/gpio/gpio8/value; sleep 1; echo 1 > /sys/class/gpio/gpio8/value; sleep 1; /usr/bin/avrdude -C/etc/avrdude.conf -p%s -c%s -P%s -b%s -D -Uflash:w:%s:i 2>&1" %{ partno, programmer, tty, baudrate, image_tmp })
++            if util then
++               while true do
++                  local ln = util:read("*l")
++                  if not ln then break end
++                  luci.http.write(ln)
++                  luci.http.write("\n")
++               end
++               util:close()
++            end
++            return
++         end
++      end
++   end
++   luci.http.status(500, "Bad parameters")
++end
++
++function board_list()
++   local uci = require("luci.model.uci")
++   local boards = {}
++   state = uci.cursor_state()
++   state:set_confdir("/usr/share/arduino/hardware/arduino/")
++   state:load("arduino")
++   state:foreach("arduino", "boards",
++                 function(section)
++                    local ids = section.id
++                    local names = section.name
++                    for i = 1, #ids do
++                       boards[ids[i]] = names[i]
++                    end
++                 end
++              )
++   state:unload("arduino")
++   return boards
++end
++
++function board_param(board)
++   local uci = require("luci.model.uci")
++   local boards = {}
++   state = uci.cursor_state()
++   state:set_confdir("/usr/share/arduino/hardware/arduino/boards")
++   state:load(board)
++   local protocol = state:get_first(board, "upload", "protocol")
++   local speed = state:get_first(board, "upload", "speed")
++   local mcu = state:get_first(board, "build", "mcu")
++   state:unload(board)
++   return protocol, speed, mcu
++end
++
++function tty_list()
++   local fs = require "nixio.fs"
++   local ttys = {}
++   local i = 1
++   for tty in fs.glob("/dev/ttyACM[0-9]*") do
++      ttys[i] = tty
++      i = i + 1
++   end
++   for tty in fs.glob("/dev/ttyUSB[0-9]*") do
++      ttys[i] = tty
++      i = i + 1
++   end
++   return ttys
++end
+diff -Naur luci-0.11+svn9510.orig/modules/admin-full/luasrc/view/admin_arduino/confirm.htm luci-0.11+svn9510/modules/admin-full/luasrc/view/admin_arduino/confirm.htm
+--- luci-0.11+svn9510.orig/modules/admin-full/luasrc/view/admin_arduino/confirm.htm	1970-01-01 01:00:00.000000000 +0100
++++ luci-0.11+svn9510/modules/admin-full/luasrc/view/admin_arduino/confirm.htm	2012-11-29 18:02:07.000000000 +0100
+@@ -0,0 +1,49 @@
++<%#
++LuCI - Lua Configuration Interface
++Copyright 2012 Michel Stempin <michel.stempin@wanadoo.fr>
++
++Licensed under the Apache License, Version 2.0 (the "License");
++you may not use this file except in compliance with the License.
++You may obtain a copy of the License at
++
++	http://www.apache.org/licenses/LICENSE-2.0
++
++$Id: $
++
++-%>
++
++<%+header%>
++
++<h2><a id="content" name="content"><%:Flash Arduino%> - <%:Verify%></a></h2>
++<p>
++	<%_ The Arduino flash image was uploaded.
++		Below is the checksum and file size listed,
++		compare them with the original file to ensure data integrity.<br />
++		Make sure also that the board type and serial tty match the actual hardware.<br />
++		Click "Proceed" below to start the flash procedure. %>
++</p>
++<fieldset class="cbi-section">
++	<ul>
++		<li><%:Checksum%>: <code><%=checksum%></code></li>
++		<li><%:Size%>: <%
++			local w = require "luci.tools.webadmin"
++			write(w.byte_format(size))
++		%></li>
++    <li><%:Board type%>: <%=board_name%></li>
++    <li><%:Serial tty%>: <%=tty%></li>
++	</ul>
++</fieldset>
++
++<div class="cbi-page-actions right">
++	<form style="display:inline" action="<%=REQUEST_URI%>" method="post">
++		<input class="cbi-button cbi-button-reset" type="submit" value="<%:Cancel%>" />
++	</form>
++	<form style="display:inline" action="<%=REQUEST_URI%>" method="post">
++		<input type="hidden" name="step" value="2" />
++		<input type="hidden" name="board" value="<%=board_id%>" />
++		<input type="hidden" name="tty" value="<%=tty%>" />
++		<input class="cbi-button cbi-button-apply" type="submit" value="<%:Proceed%>" />
++	</form>
++</div>
++
++<%+footer%>
+diff -Naur luci-0.11+svn9510.orig/modules/admin-full/luasrc/view/admin_arduino/flash.htm luci-0.11+svn9510/modules/admin-full/luasrc/view/admin_arduino/flash.htm
+--- luci-0.11+svn9510.orig/modules/admin-full/luasrc/view/admin_arduino/flash.htm	1970-01-01 01:00:00.000000000 +0100
++++ luci-0.11+svn9510/modules/admin-full/luasrc/view/admin_arduino/flash.htm	2012-11-29 18:02:07.000000000 +0100
+@@ -0,0 +1,83 @@
++<%#
++LuCI - Lua Configuration Interface
++Copyright 2012 Michel Stempin <michel.stempin@wanadoo.fr>
++
++Licensed under the Apache License, Version 2.0 (the "License");
++you may not use this file except in compliance with the License.
++You may obtain a copy of the License at
++
++	http://www.apache.org/licenses/LICENSE-2.0
++
++$Id: $
++
++-%>
++
++<%+header%>
++
++<script type="text/javascript" src="<%=resource%>/cbi.js"></script>
++<script type="text/javascript">//<![CDATA[
++	var stxhr = new XHR();
++
++	window.onload = function update_status()
++	{
++		var content = document.getElementById('content');
++		var warning = document.getElementById('avrdude-warning');
++		var legend = document.getElementById('avrdude-legend');
++		var output = document.getElementById('avrdude-output');
++		var back = document.getElementById('back');
++
++		if (content && warning && legend && output && back)
++		{
++			output.innerHTML =
++				'<img src="<%=resource%>/icons/loading.gif" alt="<%:Loading%>" style="vertical-align:middle" /> ' +
++				'<%:Waiting for command to complete...%>'
++			;
++
++			legend.parentNode.style.display = 'block';
++			legend.style.display = 'inline';
++
++			stxhr.get('<%=luci.dispatcher.build_url("admin", "arduino", "avrdude") .. "/" .. board .. tty%>', null,
++				function(x)
++				{
++					if (x.responseText)
++					{
++						warning.style.display = 'none';
++						legend.style.display = 'none';
++						content.innerHTML = content.innerHTML + ' <%:Done%>';
++						back.style.display = 'block';
++						output.innerHTML = String.format('<pre>%h</pre>', x.responseText);
++					}
++					else
++					{
++						warning.style.display = 'none';
++						legend.style.display = 'none';
++						content.innerHTML = content.innerHTML + ' <%:Error%>';
++						back.style.display = 'block';
++						output.innerHTML = '<span class="error"><%:Bad parameters specified!%></span>';
++					}
++				}
++			);
++		}
++	}
++//]]></script>
++
++<h2><a id="content" name="content"><%:Arduino%> - <% if title then %><%=title%><% else %><%:Flashing...%><% end %></a></h2>
++<fieldset class="cbi-section">
++	<p>
++		<% if msg then %><div class="container" id="avrdude-warning">
++      <div class="alert-message warning">
++        <%=msg%>
++      </div>
++    </div>
++    <% end %>
++	</p>
++	<legend id="avrdude-legend"><%:Waiting for changes to be applied...%></legend>
++  <span id="avrdude-output"></span>
++</fieldset>
++<div class="cbi-page-actions right" id="back" style="display:none">
++	<form style="display:inline" action="<%=luci.dispatcher.build_url("admin", "arduino", "flash")%>" method="post">
++		<input class="cbi-button cbi-button-apply" type="submit" value="<%:Back%>" />
++	</form>
++</div>
++
++<%+footer%>
+diff -Naur luci-0.11+svn9510.orig/modules/admin-full/luasrc/view/admin_arduino/upload.htm luci-0.11+svn9510/modules/admin-full/luasrc/view/admin_arduino/upload.htm
+--- luci-0.11+svn9510.orig/modules/admin-full/luasrc/view/admin_arduino/upload.htm	1970-01-01 01:00:00.000000000 +0100
++++ luci-0.11+svn9510/modules/admin-full/luasrc/view/admin_arduino/upload.htm	2012-11-29 18:02:07.000000000 +0100
+@@ -0,0 +1,72 @@
++<%#
++LuCI - Lua Configuration Interface
++Copyright 2012 Michel Stempin <michel.stempin@wanadoo.fr>
++
++Licensed under the Apache License, Version 2.0 (the "License");
++you may not use this file except in compliance with the License.
++You may obtain a copy of the License at
++
++	http://www.apache.org/licenses/LICENSE-2.0
++
++$Id: $
++
++-%>
++
++<%+header%>
++<%                                                            
++boards_sorted = {}
++for id, name in pairs(boards) do
++   table.insert(boards_sorted, {id=id, name=name})
++end
++table.sort(boards_sorted, function(a,b) return a.name < b.name end)
++ttys_sorted = {}
++for id, name in pairs(ttys) do
++   table.insert(ttys_sorted, {id=id, name=name})
++end
++table.sort(ttys_sorted, function(a,b) return a.name < b.name end)
++%>                                                                                                                                                
++<h2><a id="content" name="content"><%:Flash Arduino%></a></h2>
++<fieldset class="cbi-section">
++	<fieldset class="cbi-section">
++		<% if #ttys > 0 then %>
++			<form method="post" action="<%=REQUEST_URI%>" enctype="multipart/form-data">
++				<div class="cbi-section-descr"><%:Upload an Arduino-compatible image here to replace the running firmware.%></div>
++				<div class="cbi-section-node">
++					<div class="cbi-value">
++						<label class="cbi-value-title" for="board"><%:Board type%>:</label>
++						<div class="cbi-value-field">
++							<select name="board" id="board" size="1">
++                <% for i, v in ipairs(boards_sorted) do %>
++                <option id="<%=v.id%>" value="<%=v.id%>"><%=v.name%></option>
++                <% end %>
++              </select>
++						</div>
++					</div>
++					<div class="cbi-value">
++						<label class="cbi-value-title" for="tty"><%:Serial tty%>:</label>
++						<div class="cbi-value-field">
++							<select name="tty" id="tty" size="1">
++                <% for i, v in ipairs(ttys_sorted) do %>
++                <option id="<%=v.name%>" value="<%=v.name%>"><%=v.name%></option>
++                <% end %>
++              </select>
++						</div>
++					</div>
++					<div class="cbi-value cbi-value-last<% if image_invalid then %> cbi-value-error<% end %>">
++						<label class="cbi-value-title" for="image"><%:Image%>:</label>
++						<div class="cbi-value-field">
++							<input type="file" name="image" id="image" />
++							<input type="submit" class="cbi-button cbi-input-apply" value="<%:Flash Arduino...%>" />
++						</div>
++					</div>
++				</div>
++				<% if image_invalid then %>
++					<div class="cbi-section-error"><%:The uploaded image file does not contain a supported format. Make sure that you choose an Intel HEX image format. %></div>
++				<% end %>
++			</form>
++		<% else %>
++			<div class="cbi-section-descr"><%:Sorry, no Arduino board has been detected. Please attach a board to the USB port.%></div>
++		<% end %>
++	</fieldset>
++</fieldset>
++<%+footer%>
