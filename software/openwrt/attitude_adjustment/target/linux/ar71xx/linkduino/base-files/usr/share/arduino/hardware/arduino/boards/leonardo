@@ -1,10 +1,12 @@
 
 config upload 'upload'
+	option protocol 'avr109'
 	option maximum_size '28672'
 	option speed '57600'
 	option disable_flushing 'true'
 
 config bootloader 'bootloader'
+	option low_fuses '0xff'
 	option high_fuses '0xd8'
 	option extended_fuses '0xcb'
 	option path 'caterina'
@@ -13,6 +15,7 @@ config bootloader 'bootloader'
 	option lock_bits '0x2F'
 
 config build 'build'
+	option mcu 'atmega32u4'
 	option f_cpu '16000000L'
 	option vid '0x2341'
 	option pid '0x8036'

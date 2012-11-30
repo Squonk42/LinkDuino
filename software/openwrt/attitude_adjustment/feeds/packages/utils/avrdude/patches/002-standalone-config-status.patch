@@ -1,10 +1,20 @@
---- avrdude-5.11.1.orig/configure	2012-11-20 22:17:12.000000000 +0100
-+++ avrdude-5.11.1/configure	2012-11-22 12:30:58.000000000 +0100
-@@ -5780,6 +5780,7 @@
- # Compiler output produced by configure, useful for debugging
- # configure, is in config.log if it exists.
+diff -Naur avrdude-5.11.1.orig/configure.ac avrdude-5.11.1/configure.ac
+--- avrdude-5.11.1.orig/configure.ac	2012-11-28 21:32:54.000000000 +0100
++++ avrdude-5.11.1/configure.ac	2012-11-28 21:41:43.000000000 +0100
+@@ -285,7 +285,6 @@
+ else
+ 	confsubst="-e /^@HAVE_PARPORT_BEGIN@/,/^@HAVE_PARPORT_END@/d"
+ fi
+-export confsubst
  
-+confsubst="-e /^@HAVE_PARPORT_BEGIN@/,/^@HAVE_PARPORT_END@/d"
- debug=false
- ac_cs_recheck=false
- ac_cs_silent=false
+ # If we are compiling with gcc, enable all warning and make warnings errors.
+ if test "$GCC" = yes; then
+@@ -380,6 +379,7 @@
+ # avrdude.conf file.
+ 
+ AC_CONFIG_FILES([avrdude.conf.tmp:avrdude.conf.in],
+-		[sed $confsubst avrdude.conf.tmp > avrdude.conf])
++		[sed $confsubst avrdude.conf.tmp > avrdude.conf],
++    [confsubst="$confsubst"])
+ 
+ AC_OUTPUT

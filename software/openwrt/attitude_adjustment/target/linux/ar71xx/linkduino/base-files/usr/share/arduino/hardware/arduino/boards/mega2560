@@ -1,9 +1,11 @@
 
 config upload 'upload'
+	option protocol 'stk500v2'
 	option maximum_size '258048'
 	option speed '115200'
 
 config bootloader 'bootloader'
+	option low_fuses '0xFF'
 	option high_fuses '0xD8'
 	option extended_fuses '0xFD'
 	option path 'stk500v2'
@@ -12,6 +14,7 @@ config bootloader 'bootloader'
 	option lock_bits '0x0F'
 
 config build 'build'
+	option mcu 'atmega2560'
 	option f_cpu '16000000L'
 	option core 'arduino'
 	option variant 'mega'

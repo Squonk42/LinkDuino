@@ -1,9 +1,11 @@
 
 config upload 'upload'
+	option protocol 'arduino'
 	option maximum_size '14336'
 	option speed '19200'
 
 config bootloader 'bootloader'
+	option low_fuses '0xff'
 	option high_fuses '0xdd'
 	option extended_fuses '0x00'
 	option path 'atmega'
@@ -12,6 +14,7 @@ config bootloader 'bootloader'
 	option lock_bits '0x0F'
 
 config build 'build'
+	option mcu 'atmega168'
 	option f_cpu '16000000L'
 	option core 'arduino'
 	option variant 'eightanaloginputs'

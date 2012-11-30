@@ -1,5 +1,5 @@
 #!/bin/sh
-set -xv
+#set -xv
 [ $# -ne 2 ] && echo "usage: $0 <arduino_dir> <linkduino_dir>" && exit 1
 in=$1/hardware/arduino
 out=$2/base-files/usr/share/arduino/hardware/arduino
@@ -58,18 +58,16 @@ do
     value=$*
     if [ "$board" = "$previous_board" ]
     then
-        if [ "$section" = "$previous_section" ]
+        if [ "$section" != "$previous_section" ]
         then
-            echo -e "\toption $option $value" | tr '"' "'" >> "$out/boards/$board"
-        else
             previous_section=$section
             echo -e "\nconfig $section '$section'" >> "$out/boards/$board"
         fi
+        echo -e "\toption $option $value" | tr '"' "'" >> "$out/boards/$board"
     else
         previous_board=$board
     fi
 done < /tmp/boards1.txt
-rm -f /tmp/boards1.txt
 previous_programmer=
 previous_section=
 while read line
