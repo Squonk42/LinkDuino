@@ -1,7 +1,7 @@
 diff -Naur luci-0.11+svn9510.orig/modules/admin-full/luasrc/controller/admin/arduino.lua luci-0.11+svn9510/modules/admin-full/luasrc/controller/admin/arduino.lua
 --- luci-0.11+svn9510.orig/modules/admin-full/luasrc/controller/admin/arduino.lua	1970-01-01 01:00:00.000000000 +0100
-+++ luci-0.11+svn9510/modules/admin-full/luasrc/controller/admin/arduino.lua	2012-11-29 18:02:56.000000000 +0100
-@@ -0,0 +1,182 @@
++++ luci-0.11+svn9510/modules/admin-full/luasrc/controller/admin/arduino.lua	2012-12-02 10:31:52.000000000 +0100
+@@ -0,0 +1,176 @@
 +--[[
 +LuCI - Lua Configuration Interface
 +
@@ -76,11 +76,13 @@ diff -Naur luci-0.11+svn9510.orig/modules/admin-full/luasrc/controller/admin/ard
 +      local tty = luci.http.formvalue("tty")
 +      if step == 1 then
 +         if image_supported() then
-+            luci.template.render("admin_arduino/confirm", {
-+                                    checksum = image_checksum(),
-+                                    size     = nixio.fs.stat(image_tmp).size,
-+                                    board_id = board_id,
-+                                    board_name = board_name,
++            --
++            -- Start flashing Arduino Board
++            --
++            luci.template.render("admin_arduino/flash", {
++                                    title = luci.i18n.translate("Flashing..."),
++                                    msg   = luci.i18n.translate("The system is flashing the Arduino board now.<br /><b>DO NOT POWER OFF THE SYSTEM!</b>."),
++                                    board = board_id,
 +                                    tty = tty
 +                                 })
 +         else
@@ -89,16 +91,6 @@ diff -Naur luci-0.11+svn9510.orig/modules/admin-full/luasrc/controller/admin/ard
 +                                    image_invalid = true
 +                                 })
 +         end
-+         --
-+         -- Start flashing Arduino Board
-+         --
-+      elseif step == 2 then
-+         luci.template.render("admin_arduino/flash", {
-+                                 title = luci.i18n.translate("Flashing..."),
-+                                 msg   = luci.i18n.translate("The system is flashing the Arduino board now.<br /><b>DO NOT POWER OFF THE SYSTEM!</b>."),
-+                                 board = board_id,
-+                                 tty = tty
-+                              })
 +      end
 +   else
 +      --
@@ -131,10 +123,12 @@ diff -Naur luci-0.11+svn9510.orig/modules/admin-full/luasrc/controller/admin/ard
 +               end
 +               util:close()
 +            end
++            nixio.fs.unlink(image_tmp)
 +            return
 +         end
 +      end
 +   end
++   nixio.fs.unlink(image_tmp)
 +   luci.http.status(500, "Bad parameters")
 +end
 +
@@ -184,62 +178,9 @@ diff -Naur luci-0.11+svn9510.orig/modules/admin-full/luasrc/controller/admin/ard
 +   end
 +   return ttys
 +end
-diff -Naur luci-0.11+svn9510.orig/modules/admin-full/luasrc/view/admin_arduino/confirm.htm luci-0.11+svn9510/modules/admin-full/luasrc/view/admin_arduino/confirm.htm
---- luci-0.11+svn9510.orig/modules/admin-full/luasrc/view/admin_arduino/confirm.htm	1970-01-01 01:00:00.000000000 +0100
-+++ luci-0.11+svn9510/modules/admin-full/luasrc/view/admin_arduino/confirm.htm	2012-11-29 18:02:07.000000000 +0100
-@@ -0,0 +1,49 @@
-+<%#
-+LuCI - Lua Configuration Interface
-+Copyright 2012 Michel Stempin <michel.stempin@wanadoo.fr>
-+
-+Licensed under the Apache License, Version 2.0 (the "License");
-+you may not use this file except in compliance with the License.
-+You may obtain a copy of the License at
-+
-+	http://www.apache.org/licenses/LICENSE-2.0
-+
-+$Id: $
-+
-+-%>
-+
-+<%+header%>
-+
-+<h2><a id="content" name="content"><%:Flash Arduino%> - <%:Verify%></a></h2>
-+<p>
-+	<%_ The Arduino flash image was uploaded.
-+		Below is the checksum and file size listed,
-+		compare them with the original file to ensure data integrity.<br />
-+		Make sure also that the board type and serial tty match the actual hardware.<br />
-+		Click "Proceed" below to start the flash procedure. %>
-+</p>
-+<fieldset class="cbi-section">
-+	<ul>
-+		<li><%:Checksum%>: <code><%=checksum%></code></li>
-+		<li><%:Size%>: <%
-+			local w = require "luci.tools.webadmin"
-+			write(w.byte_format(size))
-+		%></li>
-+    <li><%:Board type%>: <%=board_name%></li>
-+    <li><%:Serial tty%>: <%=tty%></li>
-+	</ul>
-+</fieldset>
-+
-+<div class="cbi-page-actions right">
-+	<form style="display:inline" action="<%=REQUEST_URI%>" method="post">
-+		<input class="cbi-button cbi-button-reset" type="submit" value="<%:Cancel%>" />
-+	</form>
-+	<form style="display:inline" action="<%=REQUEST_URI%>" method="post">
-+		<input type="hidden" name="step" value="2" />
-+		<input type="hidden" name="board" value="<%=board_id%>" />
-+		<input type="hidden" name="tty" value="<%=tty%>" />
-+		<input class="cbi-button cbi-button-apply" type="submit" value="<%:Proceed%>" />
-+	</form>
-+</div>
-+
-+<%+footer%>
 diff -Naur luci-0.11+svn9510.orig/modules/admin-full/luasrc/view/admin_arduino/flash.htm luci-0.11+svn9510/modules/admin-full/luasrc/view/admin_arduino/flash.htm
 --- luci-0.11+svn9510.orig/modules/admin-full/luasrc/view/admin_arduino/flash.htm	1970-01-01 01:00:00.000000000 +0100
-+++ luci-0.11+svn9510/modules/admin-full/luasrc/view/admin_arduino/flash.htm	2012-11-29 18:02:07.000000000 +0100
++++ luci-0.11+svn9510/modules/admin-full/luasrc/view/admin_arduino/flash.htm	2012-12-02 10:28:36.000000000 +0100
 @@ -0,0 +1,83 @@
 +<%#
 +LuCI - Lua Configuration Interface
@@ -326,7 +267,7 @@ diff -Naur luci-0.11+svn9510.orig/modules/admin-full/luasrc/view/admin_arduino/f
 +<%+footer%>
 diff -Naur luci-0.11+svn9510.orig/modules/admin-full/luasrc/view/admin_arduino/upload.htm luci-0.11+svn9510/modules/admin-full/luasrc/view/admin_arduino/upload.htm
 --- luci-0.11+svn9510.orig/modules/admin-full/luasrc/view/admin_arduino/upload.htm	1970-01-01 01:00:00.000000000 +0100
-+++ luci-0.11+svn9510/modules/admin-full/luasrc/view/admin_arduino/upload.htm	2012-11-29 18:02:07.000000000 +0100
++++ luci-0.11+svn9510/modules/admin-full/luasrc/view/admin_arduino/upload.htm	2012-12-02 10:28:36.000000000 +0100
 @@ -0,0 +1,72 @@
 +<%#
 +LuCI - Lua Configuration Interface
